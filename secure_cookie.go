@@ -7,11 +7,9 @@
 //        Number int
 //        OtherInfo string
 //    }
-
 //    testData := testingInterface{ 10, "info"}
 //    secureCookie, err := NewSecureCookieFromData(key, testData)
 //    secureCookie.HttpCookie // has the http cookie with encrypted contents
-
 //    decryptedValue := testingInterface{}
 //    // Decode the Cookie from above into decryptedValue
 //    _, err = DecodeHttpCookie(key, secureCookie.HttpCookie, &decryptedValue)
