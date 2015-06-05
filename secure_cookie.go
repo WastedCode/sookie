@@ -1,4 +1,4 @@
-// Secure Cookie is a way to generate an Http Cookie
+// Package sookie is a way to generate a secure Http Cookie
 // The value of the cookie is an encrypted and signed data
 // The SecureCookie, serializes, encryptes, and signs the data
 // And stores it in the cookie
@@ -14,7 +14,7 @@ import (
 )
 
 // Error raised when the key is incorrect length
-var ErrInvalidKey = errors.New("invalid key, please provide a string of length 16, 24 or 32.")
+var ErrInvalidKey = errors.New("invalid key, please provide a string of length 16, 24 or 32")
 // Error raised when the HMAC check fails
 var ErrHmacCheckFailure = errors.New("invalid HMAC")
 
@@ -22,7 +22,7 @@ var ErrHmacCheckFailure = errors.New("invalid HMAC")
 // It contains the raw value that was encrypted into the cookie
 // And also the key used to encrypt/hash
 type SecureCookie struct {
-    HttpCookie *http.Cookie
+    HTTPCookie *http.Cookie
     Key string
     Value interface{}
 }
@@ -34,7 +34,7 @@ func NewSecureCookieFromData(key string, value interface{}) (*SecureCookie, erro
     if (isValidCryptKey(key) == false) { return nil, ErrInvalidKey }
 
     secureCookie := SecureCookie {
-        HttpCookie: &http.Cookie{},
+        HTTPCookie: &http.Cookie{},
         Key: key,
         Value: value,
     }
@@ -46,18 +46,18 @@ func NewSecureCookieFromData(key string, value interface{}) (*SecureCookie, erro
     return &secureCookie, nil
 }
 
-// DecodeHttpCookie decode/decrypts the given http cookie
+// DecodeHTTPCookie decode/decrypts the given http cookie
 // The value will be stored in the interface, and an empty
 // SecureCookie object will be returned
 // SecureCookie.Value is not set, but the value interface given is
-func DecodeHttpCookie(key string, cookie *http.Cookie, value interface{}) (*SecureCookie, error) {
+func DecodeHTTPCookie(key string, cookie *http.Cookie, value interface{}) (*SecureCookie, error) {
     // Check if the encryption key is valid
     if (isValidCryptKey(key) == false) {
         return nil, ErrInvalidKey
     }
 
     secureCookie := SecureCookie {
-        HttpCookie: cookie,
+        HTTPCookie: cookie,
         Key: key,
     }
 
@@ -84,16 +84,16 @@ func (secureCookie *SecureCookie) Encrypt() (error) {
 
     // The encrypted data is signed and the hmac signature appended to the data
     // The two are then encoded using Base64
-    secureCookie.HttpCookie.Value = serializer.ByteToBase64String(
+    secureCookie.HTTPCookie.Value = serializer.ByteToBase64String(
         AppendMAC(crypt.CipherData, secureCookie.Key))
     return nil
 }
 
-// Decrypt will decrypt the value from the HttpCookie in the given interface
+// Decrypt will decrypt the value from the HTTPCookie in the given interface
 // Returns nil for success
 func (secureCookie *SecureCookie) Decrypt(value interface{}) error {
     // We get the raw bytes from the base64 encoded string
-    decoded, err := serializer.Base64StringToByte(secureCookie.HttpCookie.Value)
+    decoded, err := serializer.Base64StringToByte(secureCookie.HTTPCookie.Value)
     if (err != nil) { return err }
 
     // Try to extract the data and signature from the payload
