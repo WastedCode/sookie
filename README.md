@@ -1,7 +1,7 @@
 # SecureCookie
 Secure cookies in GoLang
 
-[![Build Status](https://travis-ci.org/WastedCode/sookie.svg)](https://travis-ci.org/WastedCode/sookie)
+[![Build Status](https://travis-ci.org/WastedCode/sookie.svg)](https://travis-ci.org/WastedCode/sookie) [![GoDoc](https://godoc.org/github.com/WastedCode/sookie?status.svg)](https://godoc.org/github.com/WastedCode/sookie)
 
 ## What's a Sookie?
 Sookie lets you create Http Cookies where the data stored is serialized, encrypted and signed.

@@ -1,3 +1,7 @@
+// Secure Cookie is a way to generate an Http Cookie
+// The value of the cookie is an encrypted and signed data
+// The SecureCookie, serializes, encryptes, and signs the data
+// And stores it in the cookie
 package sookie
 
 import (
@@ -9,20 +13,25 @@ import (
     "github.com/wastedcode/serializer"
 )
 
-var InvalidKey = errors.New("Invalid key. Please provide a string of length 16, 24 or 32.")
-var HmacCheckFailure = errors.New("Invalid HMAC")
+// Error raised when the key is incorrect length
+var ErrInvalidKey = errors.New("invalid key, please provide a string of length 16, 24 or 32.")
+// Error raised when the HMAC check fails
+var ErrHmacCheckFailure = errors.New("invalid HMAC")
 
+// SecureCookie is a wrapper around a regular HTTP cookie
+// It contains the raw value that was encrypted into the cookie
+// And also the key used to encrypt/hash
 type SecureCookie struct {
     HttpCookie *http.Cookie
     Key string
     Value interface{}
 }
 
-// Generates a new Secure Cookie from the given data
+// NewSecureCookieFromData generates a new Secure Cookie from the given data
 // The http cookie contains the encrypted and encoded value
 func NewSecureCookieFromData(key string, value interface{}) (*SecureCookie, error) {
     // Check if the encryption key is valid
-    if (isValidCryptKey(key) == false) { return nil, InvalidKey }
+    if (isValidCryptKey(key) == false) { return nil, ErrInvalidKey }
 
     secureCookie := SecureCookie {
         HttpCookie: &http.Cookie{},
@@ -37,14 +46,14 @@ func NewSecureCookieFromData(key string, value interface{}) (*SecureCookie, erro
     return &secureCookie, nil
 }
 
-// Given an http cookie, it will try to decode/decrypt it
+// DecodeHttpCookie decode/decrypts the given http cookie
 // The value will be stored in the interface, and an empty
 // SecureCookie object will be returned
 // SecureCookie.Value is not set, but the value interface given is
 func DecodeHttpCookie(key string, cookie *http.Cookie, value interface{}) (*SecureCookie, error) {
     // Check if the encryption key is valid
     if (isValidCryptKey(key) == false) {
-        return nil, InvalidKey
+        return nil, ErrInvalidKey
     }
 
     secureCookie := SecureCookie {
@@ -59,7 +68,7 @@ func DecodeHttpCookie(key string, cookie *http.Cookie, value interface{}) (*Secu
     return &secureCookie, nil
 }
 
-// Encrypt the contents from Value into the http cookie
+// Encrypt will encrypt the contents from Value into the http cookie
 // Returns nil for success
 func (secureCookie *SecureCookie) Encrypt() (error) {
     // Try to serialize the data to string
@@ -80,7 +89,7 @@ func (secureCookie *SecureCookie) Encrypt() (error) {
     return nil
 }
 
-// Decrypt the value from the HttpCookie
+// Decrypt will decrypt the value from the HttpCookie in the given interface
 // Returns nil for success
 func (secureCookie *SecureCookie) Decrypt(value interface{}) error {
     // We get the raw bytes from the base64 encoded string
@@ -92,7 +101,7 @@ func (secureCookie *SecureCookie) Decrypt(value interface{}) error {
     if (err != nil) { return err }
 
     // Make sure the Hmac matches the data
-    if (!CheckMac(data, expectedMac, secureCookie.Key)) { return HmacCheckFailure }
+    if (!CheckMac(data, expectedMac, secureCookie.Key)) { return ErrHmacCheckFailure }
 
     // Attempt to decrypt the data
     crypt, err := crypter.NewCryptFromCipherData(data, secureCookie.Key)
@@ -107,23 +116,25 @@ func (secureCookie *SecureCookie) Decrypt(value interface{}) error {
     return nil
 }
 
-// Given raw data, appends its hmac signature at the end
+// AppendMAC appends the hmac signature of the data
+// at the end of the data given
 func AppendMAC(data []byte, key string) []byte {
     mac := hmac.New(sha256.New, []byte(key))
     mac.Write(data)
     return mac.Sum(data)
 }
 
+// GetDataAndMac extracts the data and mac out of a blob of data
 // The hmac signature is fixed size, and appended at the end
 func GetDataAndMac(input []byte, key string) (data []byte, messageMac []byte, err error) {
     mac := hmac.New(sha256.New, []byte(key))
     size := mac.Size()
     length := len(input) - size
-    if (length < 0) { return nil, nil, HmacCheckFailure }
+    if (length < 0) { return nil, nil, ErrHmacCheckFailure }
     return input[:length], input[length:], nil
 }
 
-// Compare the given mac for the data
+// CheckMac will attempt to check the HMAC signature
 func CheckMac(data []byte, expectedMac []byte, key string) bool {
     mac := hmac.New(sha256.New, []byte(key))
     mac.Write(data)
@@ -131,7 +142,7 @@ func CheckMac(data []byte, expectedMac []byte, key string) bool {
     return hmac.Equal(calculatedMac, expectedMac)
 }
 
-// Check if the incoming encryption key is valid
+// isValidCryptKey checks if the incoming encryption key is valid
 func isValidCryptKey(key string) (isValid bool) {
     defer func() {
         if (recover() != nil) {
