@@ -18,7 +18,7 @@ func TestNewSecureCookieFromDataWithInterface(t *testing.T) {
     if (err != nil) { t.Error("Failed to create secure cookie for a struct") }
 
     decryptedValue := testingInterface{}
-    _, err = DecodeHttpCookie(key, secureCookie.HttpCookie, &decryptedValue)
+    _, err = DecodeHTTPCookie(key, secureCookie.HTTPCookie, &decryptedValue)
     if (err != nil) { t.Error("Unable to decode secure cookie generated http cookie") }
 
     if (decryptedValue.Number != testData.Number || decryptedValue.OtherInfo != testData.OtherInfo) {
@@ -32,7 +32,7 @@ func TestNewSecureCookieFromDataWithString(t *testing.T) {
     if (err != nil) { t.Error("Failed to create secure cookie for a struct") }
 
     decryptedValue := ""
-    _, err = DecodeHttpCookie(key, secureCookie.HttpCookie, &decryptedValue)
+    _, err = DecodeHTTPCookie(key, secureCookie.HTTPCookie, &decryptedValue)
     if (err != nil) { t.Error("Unable to decode secure cookie generated http cookie") }
 
     if (decryptedValue != testData) {
@@ -47,23 +47,23 @@ func TestNewSecureCookieWithBadKey(t *testing.T) {
     }
 }
 
-func TestDecodeHttpCookie(t *testing.T) {
+func TestDecodeHTTPCookie(t *testing.T) {
     testData := testingInterface{ 10, "info"}
     secureCookie, err := NewSecureCookieFromData(key, testData)
     if (err != nil) { t.Error("Failed to create secure cookie for a struct") }
 
     decryptedValue := testingInterface{}
-    decoded, err := DecodeHttpCookie("abcded", secureCookie.HttpCookie, &decryptedValue)
+    decoded, err := DecodeHTTPCookie("abcded", secureCookie.HTTPCookie, &decryptedValue)
 
     if (err == nil || decoded != nil) {
         t.Error("Expected an error when a bad key was given")
     }
 }
 
-func TestDecodeHttpCookieInvalidData(t *testing.T) {
+func TestDecodeHTTPCookieInvalidData(t *testing.T) {
     decryptedValue := testingInterface{}
     cookie := http.Cookie { Value: "blah"}
-    decoded, err := DecodeHttpCookie(key, &cookie, &decryptedValue)
+    decoded, err := DecodeHTTPCookie(key, &cookie, &decryptedValue)
     if (err == nil || decoded != nil) {
         t.Error("Expected an error when a bad key was given")
     }
